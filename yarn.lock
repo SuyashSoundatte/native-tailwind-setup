@@ -6325,6 +6325,11 @@ react-is@^19.0.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.1.0.tgz#805bce321546b7e14c084989c77022351bbdd11b"
   integrity sha512-Oe56aUPnkHyyDxxkvqtd7KkdQP5uIUfHxd5XTb3wE9d/kRnZLmKbDB0GWk919tdQ+mxxPtG6EAs6RMT6i1qtHg==
 
+react-native-config@^1.5.5:
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/react-native-config/-/react-native-config-1.5.5.tgz#5977db58ff20b6fe9dd6fb28c815a9ba43d018d2"
+  integrity sha512-dGdLnBU0cd5xL5bF0ROTmHYbsstZnQKOEPfglvZi1vStvAjpld14X25K6mY3KGPTMWAzx6TbjKeq5dR+ILuMMA==
+
 react-native-css-interop@0.1.22:
   version "0.1.22"
   resolved "https://registry.yarnpkg.com/react-native-css-interop/-/react-native-css-interop-0.1.22.tgz#70cc6ca7a8f14126e123e44a19ceed74dd2a167a"
@@ -6342,10 +6347,10 @@ react-native-is-edge-to-edge@1.1.7:
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.7.tgz#28947688f9fafd584e73a4f935ea9603bd9b1939"
   integrity sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==
 
-react-native-onesignal@^5.2.10:
-  version "5.2.10"
-  resolved "https://registry.yarnpkg.com/react-native-onesignal/-/react-native-onesignal-5.2.10.tgz#ea681a36bcee6c69d6fe908fa7571dfebec01feb"
-  integrity sha512-MaPJTFSj0g/X7Wov4jRuS+aPvK+kH6o1blA0peD6BJ7nx04moVcNQGAPd58ZWgGJ0p9s0JAHDpVlF9mcby4vyA==
+react-native-onesignal@^5.2.11:
+  version "5.2.11"
+  resolved "https://registry.yarnpkg.com/react-native-onesignal/-/react-native-onesignal-5.2.11.tgz#91967240c483468c56a721be2b5e7c30b2412bdf"
+  integrity sha512-Xf/5tUGwt0MtjKawtKC+BIftihXPHFqiu0SnhsC+qjlawdHCUPo9fzKKyDYv5Hshgw6L3ZrbCyC24VPd+j22oA==
   dependencies:
     invariant "^2.2.2"
 
