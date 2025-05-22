@@ -1,84 +1,66 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
+import axios from 'axios';
 import dotenv from 'dotenv';
-import { sendPushNotification, sendSMS } from './fcm';
-
 dotenv.config();
 
-interface NotificationRequestBody {
-  playerId?: string;
-  phoneNumber?: string;
-  title: string;
-  message: string;
-}
-
-interface ApiResponse {
-  success: boolean;
-  notificationId?: string;
-  error?: string;
-}
-
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
-
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cors({ origin: '*' }));
 
-// Routes
-app.get('/', (req: Request, res: Response) => {
-  res.send('Notification Service is running');
+// OneSignal configuration
+const ONESIGNAL_APP_ID = process.env.ONE_SIGNAL_APP_ID;
+const ONESIGNAL_API_KEY = process.env.ONE_SIGNAL_API_KEY;
+// console.log(ONESIGNAL_APP_ID, ONESIGNAL_API_KEY);
+
+// Simple endpoint to send notification
+app.post('/send-notification', async (req, res) => {
+  try {
+    console.log(req.body);
+    const {playerIds, title, message, data} = req.body;
+
+    if (!playerIds || !Array.isArray(playerIds) || playerIds.length === 0) {
+      res.status(400).json({ success: false, error: 'Player IDs are required' });
+    }
+
+    const notification = {
+      app_id: ONESIGNAL_APP_ID,
+      include_player_ids: playerIds,
+      headings: {en: title},
+      contents: {en: message},
+      data: data || {},
+    };
+
+    const response = await axios.post(
+      'https://onesignal.com/api/v1/notifications',
+      notification,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${ONESIGNAL_API_KEY}`,
+        },
+      },
+    );
+
+    res.status(200).json({
+      success: true,
+      notificationId: response.data.id,
+    });
+  } catch (error: any) {
+    console.error('Full error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+    });
+    res.status(error.response?.status || 500).json({
+        success: false,
+        error: error.response?.data?.errors || 'Failed to send notification',
+        details: error.response?.data,
+    });
+}
 });
 
-// Properly typed route handler
-const notifyHandler = async (
-  req: Request<{}, {}, NotificationRequestBody>,
-  res: Response<ApiResponse>,
-) => {
-  const { playerId, phoneNumber, title, message } = req.body;
-
-  if (!playerId && !phoneNumber) {
-    res.status(400).json({
-      success: false,
-      error: 'Either playerId or phoneNumber must be provided',
-    });
-  }
-
-  try {
-    let response: ApiResponse;
-
-    if (playerId) {
-      const result = await sendPushNotification(playerId, title, message);
-      response = {
-        success: result.success,
-        notificationId: result.id,
-        error: result.error,
-      };
-    } else {
-      const result = await sendSMS(phoneNumber!, message);
-      response = {
-        success: result.success,
-        error: result.error,
-      };
-    }
-
-    if (!response.success) {
-      res.status(400).json(response);
-    }
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error in notification service:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-    });
-  }
-};
-
-app.post('/notify', notifyHandler);
-
-// Server startup
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
