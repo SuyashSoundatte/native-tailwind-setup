@@ -1,8 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-// const url = 'https://api.onesignal.com/notifications?c=push';
-const url = `https://api.onesignal.com/apps/${process.env.ONE_SIGNAL_APP_ID}/users/by/external_id/alias_id/subscriptions`;
+const url = 'https://api.onesignal.com/notifications?c=push';
 const options = {
   method: 'POST',
   headers: {
@@ -11,7 +10,9 @@ const options = {
     'content-type': 'application/json',
   },
   body: JSON.stringify({
-    subscription: {type: 'Email', token: 'email@example.com'},
+    app_id: process.env.ONE_SIGNAL_APP_ID,
+    contents: {en: 'Your message body here.'},
+    included_segments: ['Test Users'],
   }),
 };
 
