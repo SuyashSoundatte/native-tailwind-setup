@@ -1,0 +1,15 @@
+--------------------------------------------------------------------------
+
+Initialize OneSignal (you're already doing this)
+
+When user logs in to your app:
+
+Set the external ID (your user ID from your backend)
+
+Optionally send the player ID to your backend
+
+When user logs out:
+
+Remove the external ID
+
+--------------------------------------------------------------------------
