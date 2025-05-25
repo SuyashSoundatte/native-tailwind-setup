@@ -1,142 +1,133 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
+import './global.css';
+import React, {useEffect} from 'react';
+import {View, Text, Alert, TouchableOpacity} from 'react-native';
+import Config from 'react-native-config';
 import {OneSignal, LogLevel} from 'react-native-onesignal';
+import uuid from 'react-native-uuid';
 
-const ONESIGNAL_APP_ID = '44f8a2e9-1940-4169-a69e-593935b9cab9';
+// https://chatgpt.com/share/68337d2b-b6a0-8004-a1fb-3d514eb7265c
 
-const App = () => {
-  const [playerId, setPlayerId] = useState<string | null>(null);
-  const [externalId, setExternalId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+if (!Config.ONESIGNAL_APP_ID) {
+  throw new Error('OneSignal App ID is not set in react-native-config.js');
+}
 
-  useEffect(() => {
-    const initializeOneSignal = async () => {
-      try {
-        // 1. Initialize
-        OneSignal.Debug.setLogLevel(LogLevel.Verbose);
-        OneSignal.initialize(ONESIGNAL_APP_ID);
+const ONE_SIGNAL_APP_ID: string = Config.ONESIGNAL_APP_ID;
 
-        // 2. Request permissions (important!)
-        const permission = await OneSignal.Notifications.requestPermission(
-          true,
-        );
-        console.log('Permission status:', permission);
-
-        if (!permission) {
-          throw new Error('Notification permission denied');
-        }
-
-        // 3. Get Player ID
-        const id = await OneSignal.User.pushSubscription.getIdAsync();
-        if (!id) {
-          throw new Error('Player ID not available');
-        }
-        setPlayerId(id);
-
-        // 4. Set External ID (can be any string - use your user system ID)
-        const demoExternalId =
-          'user_' + Math.random().toString(36).substring(7);
-        await OneSignal.login(demoExternalId);
-        setExternalId(demoExternalId);
-      } catch (err:any) {
-        console.error('Initialization error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeOneSignal();
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={styles.loadingText}>Initializing OneSignal...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <Text style={styles.helpText}>
-          Please check:{'\n'}
-          1. Internet connection{'\n'}
-          2. Notification permissions{'\n'}
-          3. OneSignal App ID
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>OneSignal Status</Text>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>Player ID:</Text>
-        <Text style={styles.value}>{playerId || 'Not available'}</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>External ID:</Text>
-        <Text style={styles.value}>{externalId || 'Not set'}</Text>
-      </View>
-    </View>
-  );
+const getUuid = () => {
+  return uuid.v4() as string;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-    padding: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    elevation: 3,
-  },
-  label: {
-    color: '#64748b',
-    fontSize: 16,
-  },
-  value: {
-    color: '#0f172a',
-    fontSize: 16,
-    marginTop: 5,
-    fontWeight: 'bold',
-  },
-  loadingText: {
-    marginTop: 20,
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  helpText: {
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});
+export default function App() {
+  const [subscriptionId, setSubscriptionId] = React.useState<string | null>(
+    null,
+  );
+  const [externalId, setExternalId] = React.useState<string | null>(null);
 
-export default App;
+  const checkSubscription = async () => {
+    const isSubscribed = await OneSignal.User.pushSubscription.getPushSubscriptionState();
+    console.log('Push Subscription State:', isSubscribed);
+
+    const subscriptionId = await OneSignal.User.pushSubscription.getIdAsync();
+    console.log('Subscription ID:', subscriptionId);
+  };
+
+  const getOneSignalId = async () => {
+    try {
+      const id = await OneSignal.User.getOnesignalId();
+      console.log('OneSignal ID:', id);
+      Alert.alert('OneSignal ID', id || 'No ID available');
+    } catch (error) {
+      console.error('Error getting OneSignal ID:', error);
+      Alert.alert('Error', 'Failed to get OneSignal ID');
+    }
+  };
+
+  const oneSignalInit = async () => {
+    try {
+      OneSignal.Debug.setLogLevel(LogLevel.Verbose);
+      OneSignal.initialize(ONE_SIGNAL_APP_ID);
+
+      const permission = await OneSignal.Notifications.requestPermission(true);
+      if (!permission) {
+        console.log('Permission not granted', permission);
+      }
+
+      console.log('Permission Granted:', permission);
+
+      await OneSignal.Notifications.getPermissionAsync();
+
+      const onesignalId = await OneSignal.User.getOnesignalId();
+      console.log('OneSignal ID:', onesignalId);
+
+      const subscription_id =
+        await OneSignal.User.pushSubscription.getIdAsync();
+      if (!subscription_id) {
+        console.log('Subscription ID not found', subscription_id);
+      }
+      setSubscriptionId(subscription_id);
+      console.log('Subscription ID', subscription_id);
+
+      const external_id = getUuid();
+      console.log('external_id', external_id);
+      await OneSignal.login(external_id);
+      setExternalId(external_id);
+    } catch (error) {
+      console.error('Error initializing OneSignal:', error);
+    }
+  };
+
+  const sendNotification = async () => {
+    try {
+      const res = await fetch(
+        'http://192.168.1.8:3000/send-notification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            playerId: externalId, // or OneSignal Player ID if you use that
+          }),
+        },
+      );
+
+      const data = await res.json();
+      console.log(data);
+      // Alert.alert('Notification Sent!');
+    } catch (err) {
+      console.error(err);
+      // Alert.alert('Failed to send notification');
+    }
+  };
+
+  useEffect(() => {
+    checkSubscription();
+    oneSignalInit();
+    // getOneSignalId();
+  }, []);
+
+  return (
+    <View className="flex-1 justify-center items-center bg-[#121212] px-6">
+      <View className="bg-[#1e1e1e] p-6 rounded-2xl w-full shadow-lg mb-4">
+        <Text className="text-gray-400 text-sm mb-1">External ID</Text>
+        <Text className="text-white font-semibold text-base break-all">
+          {externalId || 'Loading...'}
+        </Text>
+      </View>
+
+      <View className="bg-[#1e1e1e] p-6 rounded-2xl w-full shadow-lg">
+        <Text className="text-gray-400 text-sm mb-1">Subscription ID</Text>
+        <Text className="text-white font-semibold text-base break-all">
+          {subscriptionId || 'Loading...'}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        onPress={sendNotification}
+        className="bg-blue-600 px-6 py-3 rounded-xl"
+      >
+        <Text className="text-white text-center text-base font-semibold">Send Push Notification</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
