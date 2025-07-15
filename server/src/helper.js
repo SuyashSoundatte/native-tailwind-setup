@@ -1,14 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import axios from 'axios';
 
-import express from 'express';
-const app = express();
-
-app.use(express.json());
-
-app.post('/send-notification', async (req, res) => {
+export const sendNotification = async (req, res) => {
+  console.log('hello');
   const {playerId} = req.body;
+  console.log(playerId);
 
   if (!playerId) {
     return res.status(400).json({error: 'playerId is required'});
@@ -20,8 +15,8 @@ app.post('/send-notification', async (req, res) => {
       {
         app_id: process.env.ONE_SIGNAL_APP_ID,
         include_external_user_ids: [playerId],
-        headings: {en: 'Hello Chacha'},
-        contents: {en: 'BSDK Chacha!'},
+        headings: {en: 'Hello from MyApp'},
+        contents: {en: 'Idali Sambar Dosa chutteny chuttney!!'},
       },
       {
         headers: {
@@ -39,10 +34,4 @@ app.post('/send-notification', async (req, res) => {
     );
     return res.status(500).json({error: 'Failed to send notification'});
   }
-});
-
-app.get('/', (req, res) => res.send('Hello'));
-
-app.listen(3000, '0.0.0.0',() => {
-  console.log('Server is running on port 3000');
-});
+};

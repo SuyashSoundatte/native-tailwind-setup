@@ -79,7 +79,7 @@ export default function App() {
   const sendNotification = async () => {
     try {
       const res = await fetch(
-        'http://192.168.1.8:3000/send-notification',
+        'http://192.168.0.103:3000/send-notification',
         {
           method: 'POST',
           headers: {
